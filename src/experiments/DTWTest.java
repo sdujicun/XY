@@ -21,8 +21,7 @@ public class DTWTest {
 		int correct;
 		double acc, err;
 
-		// important - use the correct one! Gorecki uses different derivatives
-		// to Keogh
+		
 		XYFilter derFilter = new XYFilter();
 
 		StringBuilder st = new StringBuilder();
@@ -43,19 +42,19 @@ public class DTWTest {
 			dTest = derFilter.process(test);
 
 			// DTW
-//			DTW_DistanceBasic dtw = new DTW_DistanceBasic();
-//			knn = new kNN(dtw);
-//			correct = getCorrect(knn, train, test);
-//			acc = (double) correct / test.numInstances();
-//			err = 1 - acc;
-//			System.out.print(err + " \t ");
-//
-//			// XY_DTW
-//			XY xy_dtw = new XY(DistanceType.DTW);
-//			correct = getCorrect(xy_dtw, train, test);
-//			acc = (double) correct / test.numInstances();
-//			err = 1 - acc;
-//			System.out.print(err);
+			DTW_DistanceBasic dtw = new DTW_DistanceBasic();
+			knn = new kNN(dtw);
+			correct = getCorrect(knn, train, test);
+			acc = (double) correct / test.numInstances();
+			err = 1 - acc;
+			System.out.print(err + " \t ");
+
+			// XY_DTW
+			XY xy_dtw = new XY(DistanceType.DTW);
+			correct = getCorrect(xy_dtw, train, test);
+			acc = (double) correct / test.numInstances();
+			err = 1 - acc;
+			System.out.print(err);
 
 			// XY-DTW-Fixed
 			XY xy_dtw_f = new XY(DistanceType.DTW);
