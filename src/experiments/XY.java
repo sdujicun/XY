@@ -3,6 +3,7 @@ package experiments;
 import representation.xy.XYFilter;
 import tsc_algorithms.DD_DTW;
 import tsc_algorithms.DD_DTW.DistanceType;
+import tsc_algorithms.NN_CID.CIDDistance;
 import utilities.ClassifierTools;
 import utilities.InstanceTools;
 import utilities.fileIO.DataSets;
@@ -11,7 +12,11 @@ import weka.core.DenseInstance;
 import weka.core.EuclideanDistance;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.elastic_distance_measures.DTW;
 import weka.core.elastic_distance_measures.DTW_DistanceBasic;
+import weka.core.elastic_distance_measures.DTW_DistanceEfficient;
+import weka.core.elastic_distance_measures.ERPDistance;
+import weka.core.elastic_distance_measures.MSMDistance;
 import weka.core.neighboursearch.PerformanceStats;
 
 /**
@@ -29,7 +34,7 @@ public class XY extends kNN {
 	protected double prop;
 
 	public enum DistanceType {
-		EUCLIDEAN, DTW
+		EUCLIDEAN, DTW, CID, CIDDTW,ERP,MSM
 	};
 
 	// defaults to Euclidean distance
@@ -44,8 +49,16 @@ public class XY extends kNN {
 		super();
 		if (distType == DistanceType.EUCLIDEAN) {
 			this.distanceFunction = new XYEuclideanDistance();
-		} else {
+		} else if (distType == DistanceType.DTW) {
 			this.distanceFunction = new XYDTW();
+		} else if (distType == DistanceType.CID) {
+			this.distanceFunction = new XYCID();
+		} else if (distType == DistanceType.CIDDTW) {
+			this.distanceFunction = new XYCIDDTW();
+		} else if (distType == DistanceType.ERP) {
+			this.distanceFunction = new XYERP();
+		}else {
+			this.distanceFunction = new XYMSM();
 		}
 		this.paramsSet = false;
 	}
@@ -79,12 +92,6 @@ public class XY extends kNN {
 		}
 
 		public XYEuclideanDistance(Instances train) {
-			// this is what the paper suggests they use, but doesn't reproduce
-			// results.
-			// this.crossValidateForAlpha(train);
-
-			// when cv'ing for a = 0:0.01:1 and b = 1:-0.01:0 results can be
-			// reproduced though, so use that
 			this.crossValidateForAandB(train);
 		}
 
@@ -155,8 +162,6 @@ public class XY extends kNN {
 			return new double[] { Math.sqrt(distX), Math.sqrt(distY) };
 		}
 
-		
-
 		// changed to now return the predictions of the best alpha parameter
 		public double[] crossValidateForAandB(Instances tr) {
 			Instances train = tr;
@@ -173,8 +178,8 @@ public class XY extends kNN {
 			double[] b = new double[101];
 
 			for (int alphaId = 0; alphaId <= 100; alphaId++) {
-				a[alphaId] =  (100.0 - alphaId) / 100;
-				b[alphaId] =  alphaId *1.0/ 100;
+				a[alphaId] = (100.0 - alphaId) / 100;
+				b[alphaId] = alphaId * 1.0 / 100;
 			}
 
 			int n = train.numInstances();
@@ -324,141 +329,362 @@ public class XY extends kNN {
 
 	}
 
-	
+	public static class XYCID extends XYEuclideanDistance {
 
-	public static void recreateResultsTable() throws Exception {
-		String[] datasets = DataSets.ucrNames;
-		// String[] datasets = {"GunPoint","Coffee"};
-		String dataDir = "G:/Êý¾Ý/TSC Problems/";
-		Instances train, test, dTrain, dTest;
-		EuclideanDistance ed;
-		kNN knn;
-		int correct;
-		double acc, err;
+		public XYCID() {
+			super();
+		}
 
-		// important - use the correct one! Gorecki uses different derivatives
-		// to Keogh
-		XYFilter derFilter = new XYFilter();
+		public XYCID(Instances train) {
+			super(train);
+		}
 
-		StringBuilder st = new StringBuilder();
-		System.out.println("Dataset \t ED  \t DD_ED \t XY_ED \t DTW \t DDTW \t DD_DTW \t XY-DTW");
+		public XYCID(double a, double b) {
+			super(a, b);
+		}
 
-//		for (String dataset : datasets) {
-		//for (int i=34;i<datasets.length;i++) {
-		for (int i=10;i<20;i++) {
-			String dataset=datasets[i];
-			System.out.print(dataset + " \t ");
+		@Override
+		public double distance(Instance one, Instance two) {
+			return this.distance(one, two, Double.MAX_VALUE);
+		}
 
-			train = ClassifierTools.loadData(dataDir + dataset + "/" + dataset
-					+ "_TRAIN");
-			test = ClassifierTools.loadData(dataDir + dataset + "/" + dataset
-					+ "_TEST");
+		@Override
+		public double distance(Instance one, Instance two, double cutoff,
+				PerformanceStats stats) {
+			return this.distance(one, two, cutoff);
+		}
 
-			// instance resampling happens here, seed of 0 means that the
-			// standard train/test split is used
+		@Override
+		public double distance(Instance first, Instance second, double cutoff) {
 
-			dTrain = derFilter.process(train);
-			dTest = derFilter.process(test);
+			double[] distances = getNonScaledDistances(first, second);
+			return a * distances[0] + b * distances[1];
+		}
 
+		public double[] getNonScaledDistances(Instance first, Instance second) {
 
+			double distX = 0;
+			double distY = 0;
 
-			//ED
-//			ed = new EuclideanDistance();
-//			knn = new kNN(ed);
-//			correct = getCorrect(knn, dTrain, dTest);
-//			acc = (double) correct / test.numInstances();
-//			err = 1 - acc;
-//			System.out.print(err + " \t ");
-
-			// DD_ED
-//			DD_DTW dd_ed = new DD_DTW(DD_DTW.DistanceType.EUCLIDEAN);
-//			correct = getCorrect(dd_ed, train, test);
-//			acc = (double) correct / test.numInstances();
-//			err = 1 - acc;
-//			System.out.print(err + " \t ");
-			
-			//XY_ED
-			XY xy_ed = new XY(DistanceType.EUCLIDEAN);
-			correct = getCorrect(xy_ed, train, test);
-			acc = (double) correct / test.numInstances();
-			err = 1 - acc;
-			System.out.print(err + " \t "); 
-			System.out.print(xy_ed.distanceFunction.a + " \t "); 
-			System.out.print(xy_ed.distanceFunction.b + " \t "); 
-			//XY-ED-Fixed
-//			XY xy_ed_f = new XY(DistanceType.EUCLIDEAN);
-//			xy_ed_f.setAandB(0.5, 0.5);
-//			correct = getCorrect(xy_ed_f, train, test);
-//			acc = (double) correct / test.numInstances();
-//			err = 1 - acc;
-//			System.out.print(err + " \t ");
-			// DTW
+			// DTW dtw = new DTW();
 			DTW_DistanceBasic dtw = new DTW_DistanceBasic();
-			knn = new kNN(dtw);
-			correct = getCorrect(knn, train, test);
-			acc = (double) correct / test.numInstances();
-			err = 1 - acc;
-			System.out.print(err + " \t ");
-
-			// DDTW
-			DTW_DistanceBasic dDtw = new DTW_DistanceBasic();
-			knn = new kNN(dDtw);
-			correct = getCorrect(knn, dTrain, dTest);
-			acc = (double) correct / test.numInstances();
-			err = 1 - acc;
-			System.out.print(err + " \t ");
-
-			// DDDTW
-			DD_DTW dd_dtw = new DD_DTW(DD_DTW.DistanceType.DTW);
-			correct = getCorrect(dd_dtw, train, test);
-			acc = (double) correct / test.numInstances();
-			err = 1 - acc;
-			System.out.print(err + " \t ");
-
-			// XY_DTW
-			XY xy_dtw = new XY(DistanceType.DTW);
-			correct = getCorrect(xy_dtw, train, test);
-			acc = (double) correct / test.numInstances();
-			err = 1 - acc;
-			System.out.print(err);
-			System.out.print(xy_dtw.distanceFunction.a + " \t "); 
-			System.out.print(xy_dtw.distanceFunction.b + " \t "); 
-			
-			//XY-DTW-Fixed
-//			XY xy_dtw_f= new XY(DistanceType.DTW);
-//			xy_dtw_f.setAandB(0.5, 0.5);
-//			correct = getCorrect(xy_dtw_f, train, test);
-//			acc = (double) correct / test.numInstances();
-//			err = 1 - acc;
-//			System.out.print(err + " \t ");
-			
-			System.out.println();
-		}
-
-	}
-
-	public static void main(String[] args) {
-
-		try {
-			recreateResultsTable();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-	}
-
-	protected static int getCorrect(kNN knn, Instances train, Instances test)
-			throws Exception {
-		knn.buildClassifier(train);
-		int correct = 0;
-		for (int i = 0; i < test.numInstances(); i++) {
-			if (test.instance(i).classValue() == knn.classifyInstance(test
-					.instance(i))) {
-				correct++;
+			int classPenalty = 0;
+			if (first.classIndex() > 0) {
+				classPenalty = 1;
 			}
+
+			XYFilter filter = new XYFilter();
+			Instances tempX = new Instances(first.dataset(), 0);
+			Instances tempY = new Instances(first.dataset(), 0);
+			tempX.add(first);
+			tempX.add(second);
+			tempY.add(first);
+			tempY.add(second);
+			try {
+				tempX = filter.processX(tempX);
+				tempY = filter.processY(tempY);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+
+			CIDDistance cd = new CIDDistance();
+
+			distX = cd.distance(tempX.get(0), tempX.get(1));
+			distY = cd.distance(tempY.get(0), tempY.get(1), Double.MAX_VALUE);
+
+			return new double[] { Math.sqrt(distX), Math.sqrt(distY) };
 		}
-		return correct;
+
 	}
+
+	public static class CIDDistance extends EuclideanDistance {
+
+		@Override
+		public double distance(Instance one, Instance two) {
+			return this.distance(one, two, Double.MAX_VALUE);
+		}
+
+		@Override
+		public double distance(Instance one, Instance two, double cutoff,
+				PerformanceStats stats) {
+			return this.distance(one, two, cutoff);
+		}
+
+		@Override
+		public double distance(Instance first, Instance second, double cutoff) {
+
+			double d = 0;
+			// Find the acf terms
+			double d1 = 0, d2 = 0;
+			double[] data1 = first.toDoubleArray();
+			double[] data2 = second.toDoubleArray();
+			for (int i = 0; i < first.numAttributes() - 1; i++)
+				d += (data1[i] - data2[i]) * (data1[i] - data2[i]);
+			d = Math.sqrt(d);
+			for (int i = 0; i < first.numAttributes() - 2; i++)
+				d1 += (data1[i] - data1[i + 1]) * (data1[i] - data1[i + 1]);
+			for (int i = 0; i < first.numAttributes() - 2; i++)
+				d2 += (data2[i] - data2[i + 1]) * (data2[i] - data2[i + 1]);
+			d1 = Math.sqrt(d1 + 0.001); // This is from theircode
+			d2 = Math.sqrt(d2 + 0.001); // This is from theircode
+			if (d1 < d2) {
+				double temp = d1;
+				d1 = d2;
+				d2 = temp;
+			}
+			d = Math.sqrt(d);
+			d = d * (d1 / d2);
+			return d;
+		}
+
+	}
+
+	public static class XYCIDDTW extends XYEuclideanDistance {
+
+		public XYCIDDTW() {
+			super();
+		}
+
+		public XYCIDDTW(Instances train) {
+			super(train);
+		}
+
+		public XYCIDDTW(double a, double b) {
+			super(a, b);
+		}
+
+		@Override
+		public double distance(Instance one, Instance two) {
+			return this.distance(one, two, Double.MAX_VALUE);
+		}
+
+		@Override
+		public double distance(Instance one, Instance two, double cutoff,
+				PerformanceStats stats) {
+			return this.distance(one, two, cutoff);
+		}
+
+		@Override
+		public double distance(Instance first, Instance second, double cutoff) {
+
+			double[] distances = getNonScaledDistances(first, second);
+			return a * distances[0] + b * distances[1];
+		}
+
+		public double[] getNonScaledDistances(Instance first, Instance second) {
+
+			double distX = 0;
+			double distY = 0;
+			int classPenalty = 0;
+			if (first.classIndex() > 0) {
+				classPenalty = 1;
+			}
+
+			XYFilter filter = new XYFilter();
+			Instances tempX = new Instances(first.dataset(), 0);
+			Instances tempY = new Instances(first.dataset(), 0);
+			tempX.add(first);
+			tempX.add(second);
+			tempY.add(first);
+			tempY.add(second);
+			try {
+				tempX = filter.processX(tempX);
+				tempY = filter.processY(tempY);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+
+			CIDDTWDistance cd = new CIDDTWDistance();
+
+			distX = cd.distance(tempX.get(0), tempX.get(1));
+			distY = cd.distance(tempY.get(0), tempY.get(1), Double.MAX_VALUE);
+
+			return new double[] { Math.sqrt(distX), Math.sqrt(distY) };
+		}
+
+	}
+
+	public static class CIDDTWDistance extends CIDDistance {
+		DTW_DistanceEfficient dtw = new DTW_DistanceEfficient();
+
+		@Override
+		public double distance(Instance one, Instance two) {
+			return this.distance(one, two, Double.MAX_VALUE);
+		}
+
+		@Override
+		public double distance(Instance one, Instance two, double cutoff,
+				PerformanceStats stats) {
+			return this.distance(one, two, cutoff);
+		}
+
+		@Override
+		public double distance(Instance first, Instance second, double cutoff) {
+
+			double d = 0;
+			// Find the acf terms
+			double d1 = 0, d2 = 0;
+			double[] data1 = first.toDoubleArray();
+			double[] data2 = second.toDoubleArray();
+
+			d = dtw.distance(first, second);
+			for (int i = 0; i < first.numAttributes() - 2; i++)
+				d1 += (data1[i] - data1[i + 1]) * (data1[i] - data1[i + 1]);
+			for (int i = 0; i < first.numAttributes() - 2; i++)
+				d2 += (data2[i] - data2[i + 1]) * (data2[i] - data2[i + 1]);
+			d1 = Math.sqrt(d1) + 0.001; // This is from theircode
+			d2 = Math.sqrt(d2) + 0.001; // This is from theircode
+			if (d1 < d2) {
+				double temp = d1;
+				d1 = d2;
+				d2 = temp;
+			}
+			d = d * (d1 / d2);
+			return d;
+		}
+
+	}
+	
+	public static class XYERP extends XYEuclideanDistance {
+
+		public XYERP() {
+			super();
+		}
+
+		public XYERP(Instances train) {
+			super(train);
+		}
+
+		public XYERP(double a, double b) {
+			super(a, b);
+		}
+
+		@Override
+		public double distance(Instance one, Instance two) {
+			return this.distance(one, two, Double.MAX_VALUE);
+		}
+
+		@Override
+		public double distance(Instance one, Instance two, double cutoff,
+				PerformanceStats stats) {
+			return this.distance(one, two, cutoff);
+		}
+
+		@Override
+		public double distance(Instance first, Instance second, double cutoff) {
+
+			double[] distances = getNonScaledDistances(first, second);
+			return a * distances[0] + b * distances[1];
+		}
+
+		public double[] getNonScaledDistances(Instance first, Instance second) {
+
+			double distX = 0;
+			double distY = 0;
+
+			
+			ERPDistance erp = new ERPDistance(0.5,0.5);
+			int classPenalty = 0;
+			if (first.classIndex() > 0) {
+				classPenalty = 1;
+			}
+
+			XYFilter filter = new XYFilter();
+			Instances tempX = new Instances(first.dataset(), 0);
+			Instances tempY = new Instances(first.dataset(), 0);
+			tempX.add(first);
+			tempX.add(second);
+			tempY.add(first);
+			tempY.add(second);
+			try {
+				tempX = filter.processX(tempX);
+				tempY = filter.processY(tempY);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+
+			
+
+			distX = erp.distance(tempX.get(0), tempX.get(1));
+			distY = erp.distance(tempY.get(0), tempY.get(1), Double.MAX_VALUE);
+
+			return new double[] { Math.sqrt(distX), Math.sqrt(distY) };
+		}
+
+	}
+	
+	
+	public static class XYMSM extends XYEuclideanDistance {
+
+		public XYMSM() {
+			super();
+		}
+
+		public XYMSM(Instances train) {
+			super(train);
+		}
+
+		public XYMSM(double a, double b) {
+			super(a, b);
+		}
+
+		@Override
+		public double distance(Instance one, Instance two) {
+			return this.distance(one, two, Double.MAX_VALUE);
+		}
+
+		@Override
+		public double distance(Instance one, Instance two, double cutoff,
+				PerformanceStats stats) {
+			return this.distance(one, two, cutoff);
+		}
+
+		@Override
+		public double distance(Instance first, Instance second, double cutoff) {
+
+			double[] distances = getNonScaledDistances(first, second);
+			return a * distances[0] + b * distances[1];
+		}
+
+		public double[] getNonScaledDistances(Instance first, Instance second) {
+
+			double distX = 0;
+			double distY = 0;
+
+			
+			MSMDistance msm=new MSMDistance();
+			int classPenalty = 0;
+			if (first.classIndex() > 0) {
+				classPenalty = 1;
+			}
+
+			XYFilter filter = new XYFilter();
+			Instances tempX = new Instances(first.dataset(), 0);
+			Instances tempY = new Instances(first.dataset(), 0);
+			tempX.add(first);
+			tempX.add(second);
+			tempY.add(first);
+			tempY.add(second);
+			try {
+				tempX = filter.processX(tempX);
+				tempY = filter.processY(tempY);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+
+			
+
+			distX = msm.distance(tempX.get(0), tempX.get(1));
+			distY = msm.distance(tempY.get(0), tempY.get(1), Double.MAX_VALUE);
+
+			return new double[] { Math.sqrt(distX), Math.sqrt(distY) };
+		}
+
+	}
+	
 
 }

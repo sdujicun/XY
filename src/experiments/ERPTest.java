@@ -1,36 +1,31 @@
 package experiments;
 
-import representation.xy.XYFilter;
 import utilities.ClassifierTools;
-import utilities.InstanceTools;
 import utilities.fileIO.DataSets;
 import weka.classifiers.lazy.kNN;
-import weka.core.EuclideanDistance;
 import weka.core.Instances;
-import weka.core.elastic_distance_measures.DTW_DistanceBasic;
+import weka.core.elastic_distance_measures.ERPDistance;
 import experiments.XY.DistanceType;
 
-public class DTWTest {
+public class ERPTest {
 	public static void main(String[] args) throws Exception {
-
-		String[] datasets = DataSets.ucrNames;
-		//String[] datasets = {"StarLightCurves"};
+//		String[] datasets = DataSets.ucrNames;
+		String[] datasets = {"OliveOil","OSULeaf","SwedishLeaf","Symbols",
+		"SyntheticControl","Trace","TwoLeadECG","TwoPatterns"};
 		String dataDir = "G:/Êý¾Ý/TSC Problems/";
-		Instances train, test, dTrain, dTest;
+		Instances train, test;
+		ERPDistance erp;
 		kNN knn;
 		int correct;
 		double acc, err;
 
-		
-	
-
 		StringBuilder st = new StringBuilder();
 		System.out
-				.println("Dataset  \t DTW  \t XY-DTW");
-
+				.println("Dataset \t ERP   \t XY_ERP");
 
 		for (String dataset : datasets) {
-
+//		for (int i=40;i<43;i++) {
+//			String dataset=datasets[i];
 			System.out.print(dataset + " \t ");
 
 			train = ClassifierTools.loadData(dataDir + dataset + "/" + dataset
@@ -38,26 +33,25 @@ public class DTWTest {
 			test = ClassifierTools.loadData(dataDir + dataset + "/" + dataset
 					+ "_TEST");
 
-
-			// DTW
-			DTW_DistanceBasic dtw = new DTW_DistanceBasic();
-			knn = new kNN(dtw);
+			// ERP
+			erp = new ERPDistance(0.5,0.5);
+			knn = new kNN(erp);
 			correct = getCorrect(knn, train, test);
 			acc = (double) correct / test.numInstances();
 			err = 1 - acc;
 			System.out.print(err + " \t ");
 
-			// XY_DTW
-			XY xy_dtw_f = new XY(DistanceType.DTW);
-			xy_dtw_f.setAandB(0.5, 0.5);
-			correct = getCorrect(xy_dtw_f, train, test);
+			// XY_ERP
+			XY xy_erp = new XY(DistanceType.ERP);
+			xy_erp.setAandB(0.5, 0.5);
+			correct = getCorrect(xy_erp, train, test);
 			acc = (double) correct / test.numInstances();
 			err = 1 - acc;
 			System.out.print(err + " \t ");
+			
 
 			System.out.println();
 		}
-
 	}
 
 	protected static int getCorrect(kNN knn, Instances train, Instances test)

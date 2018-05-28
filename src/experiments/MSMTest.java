@@ -1,34 +1,30 @@
 package experiments;
 
-import representation.xy.XYFilter;
 import utilities.ClassifierTools;
-import utilities.InstanceTools;
 import utilities.fileIO.DataSets;
 import weka.classifiers.lazy.kNN;
-import weka.core.EuclideanDistance;
 import weka.core.Instances;
+import weka.core.elastic_distance_measures.MSMDistance;
 import experiments.XY.DistanceType;
 
-public class EuclideanDistanceTest {
+public class MSMTest {
 	public static void main(String[] args) throws Exception {
 		String[] datasets = DataSets.ucrNames;
 		// String[] datasets = {"GunPoint","Coffee"};
 		String dataDir = "G:/Êý¾Ý/TSC Problems/";
-		Instances train, test, dTrain, dTest;
-		EuclideanDistance ed;
+		Instances train, test;
+		MSMDistance msm;
 		kNN knn;
 		int correct;
 		double acc, err;
 
-		// important - use the correct one! Gorecki uses different derivatives
-		// to Keogh
-		XYFilter derFilter = new XYFilter();
-
 		StringBuilder st = new StringBuilder();
 		System.out
-				.println("Dataset \t ED   \t XY_ED \t XY-ED-fixed");
+				.println("Dataset \t MSM   \t XY_MSM");
 
 		for (String dataset : datasets) {
+//		for (int i=40;i<43;i++) {
+//			String dataset=datasets[i];
 			System.out.print(dataset + " \t ");
 
 			train = ClassifierTools.loadData(dataDir + dataset + "/" + dataset
@@ -36,31 +32,22 @@ public class EuclideanDistanceTest {
 			test = ClassifierTools.loadData(dataDir + dataset + "/" + dataset
 					+ "_TEST");
 
-			dTrain = derFilter.process(train);
-			dTest = derFilter.process(test);
+			// MSM
+//			msm = new MSMDistance();
+//			knn = new kNN(msm);
+//			correct = getCorrect(knn, train, test);
+//			acc = (double) correct / test.numInstances();
+//			err = 1 - acc;
+//			System.out.print(err + " \t ");
 
-			// ED
-			ed = new EuclideanDistance();
-			knn = new kNN(ed);
-			correct = getCorrect(knn, dTrain, dTest);
-			acc = (double) correct / test.numInstances();
-			err = 1 - acc;
-			System.out.print(err + " \t ");
-
-			// XY_ED
-			XY xy_ed = new XY(DistanceType.EUCLIDEAN);
-			correct = getCorrect(xy_ed, train, test);
+			// XY_MSM
+			XY xy_msm = new XY(DistanceType.MSM);
+			xy_msm.setAandB(0.5, 0.5);
+			correct = getCorrect(xy_msm, train, test);
 			acc = (double) correct / test.numInstances();
 			err = 1 - acc;
 			System.out.print(err + " \t ");
 			
-			// XY-ED-Fixed
-			XY xy_ed_f = new XY(DistanceType.EUCLIDEAN);
-			xy_ed_f.setAandB(0.5, 0.5);
-			correct = getCorrect(xy_ed_f, train, test);
-			acc = (double) correct / test.numInstances();
-			err = 1 - acc;
-			System.out.print(err + " \t ");
 
 			System.out.println();
 		}

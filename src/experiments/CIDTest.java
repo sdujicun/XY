@@ -1,6 +1,7 @@
 package experiments;
 
 import representation.xy.XYFilter;
+import tsc_algorithms.NN_CID;
 import utilities.ClassifierTools;
 import utilities.InstanceTools;
 import utilities.fileIO.DataSets;
@@ -10,45 +11,42 @@ import weka.core.Instances;
 import weka.core.elastic_distance_measures.DTW_DistanceBasic;
 import experiments.XY.DistanceType;
 
-public class DTWTest {
+public class CIDTest {
 	public static void main(String[] args) throws Exception {
 
 		String[] datasets = DataSets.ucrNames;
-		//String[] datasets = {"StarLightCurves"};
+//		String[] datasets = {"OliveOil","OSULeaf","SwedishLeaf","Symbols",
+//				"SyntheticControl","Trace","TwoLeadECG","TwoPatterns"};
 		String dataDir = "G:/Êý¾Ý/TSC Problems/";
 		Instances train, test, dTrain, dTest;
 		kNN knn;
 		int correct;
 		double acc, err;
 
-		
-	
 
-		StringBuilder st = new StringBuilder();
-		System.out
-				.println("Dataset  \t DTW  \t XY-DTW");
+		System.out.println("Dataset  \t CID  \t XY-CID");;
 
 
 		for (String dataset : datasets) {
-
 			System.out.print(dataset + " \t ");
 
 			train = ClassifierTools.loadData(dataDir + dataset + "/" + dataset
 					+ "_TRAIN");
 			test = ClassifierTools.loadData(dataDir + dataset + "/" + dataset
 					+ "_TEST");
+			
 
+			
 
-			// DTW
-			DTW_DistanceBasic dtw = new DTW_DistanceBasic();
-			knn = new kNN(dtw);
-			correct = getCorrect(knn, train, test);
+			// CID
+			NN_CID k = new NN_CID();;			
+			correct = getCorrect(k, train, test);
 			acc = (double) correct / test.numInstances();
 			err = 1 - acc;
 			System.out.print(err + " \t ");
 
-			// XY_DTW
-			XY xy_dtw_f = new XY(DistanceType.DTW);
+			//XY_CID
+			XY xy_dtw_f = new XY(DistanceType.CID);
 			xy_dtw_f.setAandB(0.5, 0.5);
 			correct = getCorrect(xy_dtw_f, train, test);
 			acc = (double) correct / test.numInstances();

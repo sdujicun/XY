@@ -38,6 +38,7 @@ import weka.core.Instances;
 import weka.core.TechnicalInformation;
 import weka.core.elastic_distance_measures.DTW;
 import weka.core.elastic_distance_measures.DTW_DistanceBasic;
+import weka.core.elastic_distance_measures.DTW_DistanceEfficient;
 import weka.core.neighboursearch.PerformanceStats;
 
 /**
@@ -129,7 +130,8 @@ public class NN_CID extends kNN {
 	}
 
 	public static class CIDDTWDistance extends CIDDistance {
-		DTW dtw = new DTW();
+		//DTW dtw = new DTW();
+		DTW_DistanceEfficient dtw = new DTW_DistanceEfficient();
 
 		@Override
 		public double distance(Instance one, Instance two) {
