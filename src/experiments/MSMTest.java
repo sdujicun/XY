@@ -9,8 +9,7 @@ import experiments.XY.DistanceType;
 
 public class MSMTest {
 	public static void main(String[] args) throws Exception {
-//		String[] datasets = DataSets.ucrNames;
-		String[] datasets = {"NonInvasiveFatalECGThorax2"};
+		String[] datasets = DataSets.ucrNames;
 		String dataDir = "G:/Êý¾Ý/TSC Problems/";
 		Instances train, test;
 		MSMDistance msm;
@@ -23,8 +22,6 @@ public class MSMTest {
 				.println("Dataset \t MSM   \t XY_MSM");
 
 		for (String dataset : datasets) {
-//		for (int i=30;i<33;i++) {
-//			String dataset=datasets[i];
 			System.out.print(dataset + " \t ");
 
 			train = ClassifierTools.loadData(dataDir + dataset + "/" + dataset

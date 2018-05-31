@@ -10,8 +10,7 @@ import experiments.XY.DistanceType;
 public class CIDDTWTest {
 	public static void main(String[] args) throws Exception {
 
-//		String[] datasets = DataSets.ucrNames;
-		String[] datasets = {"StarLightCurves"};
+		String[] datasets = DataSets.ucrNames;
 		String dataDir = "G:/Êý¾Ý/TSC Problems/";
 		Instances train, test, dTrain, dTest;
 		kNN knn;
@@ -23,8 +22,6 @@ public class CIDDTWTest {
 
 
 		for (String dataset : datasets) {
-//		for(int i=40;i<43;i++){
-//			String dataset=datasets[i];
 			System.out.print(dataset + " \t ");
 
 			train = ClassifierTools.loadData(dataDir + dataset + "/" + dataset

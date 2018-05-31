@@ -9,9 +9,7 @@ import experiments.XY.DistanceType;
 
 public class ERPTest {
 	public static void main(String[] args) throws Exception {
-//		String[] datasets = DataSets.ucrNames;
-		String[] datasets = {"OliveOil","OSULeaf","SwedishLeaf","Symbols",
-		"SyntheticControl","Trace","TwoLeadECG","TwoPatterns"};
+		String[] datasets = DataSets.ucrNames;
 		String dataDir = "G:/Êý¾Ý/TSC Problems/";
 		Instances train, test;
 		ERPDistance erp;
