@@ -9,8 +9,8 @@ import experiments.XY.DistanceType;
 
 public class MSMTest {
 	public static void main(String[] args) throws Exception {
-		String[] datasets = DataSets.ucrNames;
-		// String[] datasets = {"GunPoint","Coffee"};
+//		String[] datasets = DataSets.ucrNames;
+		String[] datasets = {"NonInvasiveFatalECGThorax2"};
 		String dataDir = "G:/Êý¾Ý/TSC Problems/";
 		Instances train, test;
 		MSMDistance msm;
@@ -23,7 +23,7 @@ public class MSMTest {
 				.println("Dataset \t MSM   \t XY_MSM");
 
 		for (String dataset : datasets) {
-//		for (int i=40;i<43;i++) {
+//		for (int i=30;i<33;i++) {
 //			String dataset=datasets[i];
 			System.out.print(dataset + " \t ");
 
@@ -33,12 +33,12 @@ public class MSMTest {
 					+ "_TEST");
 
 			// MSM
-//			msm = new MSMDistance();
-//			knn = new kNN(msm);
-//			correct = getCorrect(knn, train, test);
-//			acc = (double) correct / test.numInstances();
-//			err = 1 - acc;
-//			System.out.print(err + " \t ");
+			msm = new MSMDistance();
+			knn = new kNN(msm);
+			correct = getCorrect(knn, train, test);
+			acc = (double) correct / test.numInstances();
+			err = 1 - acc;
+			System.out.print(err + " \t ");
 
 			// XY_MSM
 			XY xy_msm = new XY(DistanceType.MSM);
