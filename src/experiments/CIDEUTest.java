@@ -1,25 +1,31 @@
 package experiments;
 
+import representation.xy.XYFilter;
+import tsc_algorithms.NN_CID;
 import utilities.ClassifierTools;
+import utilities.InstanceTools;
 import utilities.fileIO.DataSets;
 import weka.classifiers.lazy.kNN;
+import weka.core.EuclideanDistance;
 import weka.core.Instances;
-import weka.core.elastic_distance_measures.MSMDistance;
+import weka.core.elastic_distance_measures.DTW_DistanceBasic;
 import experiments.XY.DistanceType;
 
-public class MSMTest {
+public class CIDEUTest {
 	public static void main(String[] args) throws Exception {
+
 		String[] datasets = DataSets.ucrNames;
+//		String[] datasets = {"OliveOil","OSULeaf","SwedishLeaf","Symbols",
+//				"SyntheticControl","Trace","TwoLeadECG","TwoPatterns"};
 		String dataDir = "G:/Êý¾Ý/TSC Problems/";
-		Instances train, test;
-		MSMDistance msm;
+		Instances train, test, dTrain, dTest;
 		kNN knn;
 		int correct;
 		double acc, err;
 
-		StringBuilder st = new StringBuilder();
-		System.out
-				.println("Dataset \t MSM   \t XY_MSM");
+
+		System.out.println("Dataset  \t CID  \t XY-CID");;
+
 
 		for (String dataset : datasets) {
 			System.out.print(dataset + " \t ");
@@ -28,26 +34,28 @@ public class MSMTest {
 					+ "_TRAIN");
 			test = ClassifierTools.loadData(dataDir + dataset + "/" + dataset
 					+ "_TEST");
-
-			// MSM
-			msm = new MSMDistance();
-			knn = new kNN(msm);
-			correct = getCorrect(knn, train, test);
-			acc = (double) correct / test.numInstances();
-			err = 1 - acc;
-			System.out.print(err + " \t ");
-
-			// XY_MSM
-			XY xy_msm = new XY(DistanceType.MSM);
-			xy_msm.setAandB(0.5, 0.5);
-			correct = getCorrect(xy_msm, train, test);
-			acc = (double) correct / test.numInstances();
-			err = 1 - acc;
-			System.out.print(err + " \t ");
 			
+
+			
+
+			// CID
+			NN_CID k = new NN_CID();;			
+			correct = getCorrect(k, train, test);
+			acc = (double) correct / test.numInstances();
+			err = 1 - acc;
+			System.out.print(err + " \t ");
+
+			//XY_CID
+			XY xy_dtw_f = new XY(DistanceType.CID);
+			xy_dtw_f.setAandB(0.5, 0.5);
+			correct = getCorrect(xy_dtw_f, train, test);
+			acc = (double) correct / test.numInstances();
+			err = 1 - acc;
+			System.out.print(err + " \t ");
 
 			System.out.println();
 		}
+
 	}
 
 	protected static int getCorrect(kNN knn, Instances train, Instances test)
