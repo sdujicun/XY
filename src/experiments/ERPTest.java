@@ -19,7 +19,7 @@ public class ERPTest {
 
 		StringBuilder st = new StringBuilder();
 		System.out
-				.println("Dataset \t ERP   \t XY_ERP");
+				.println("Dataset \t ERP   \t 2DTbD-ERP");
 
 		for (String dataset : datasets) {
 //		for (int i=40;i<43;i++) {

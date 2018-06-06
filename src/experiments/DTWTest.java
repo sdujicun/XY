@@ -26,7 +26,7 @@ public class DTWTest {
 
 		StringBuilder st = new StringBuilder();
 		System.out
-				.println("Dataset  \t DTW  \t XY-DTW");
+				.println("Dataset  \t DTW  \t 2DTbD-DTW");
 
 
 		for (String dataset : datasets) {

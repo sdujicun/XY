@@ -24,7 +24,7 @@ public class CIDEUTest {
 		double acc, err;
 
 
-		System.out.println("Dataset  \t CID  \t XY-CID");;
+		System.out.println("Dataset  \t CIDEU  \t 2DTbD-CIDEU");;
 
 
 		for (String dataset : datasets) {

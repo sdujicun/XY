@@ -18,7 +18,7 @@ public class CIDDTWTest {
 		double acc, err;
 
 
-		System.out.println("Dataset  \t CIDDTW  \t XY-CIDDTW");;
+		System.out.println("Dataset  \t CIDDTW  \t 2DTbD-CIDDTW");;
 
 
 		for (String dataset : datasets) {
