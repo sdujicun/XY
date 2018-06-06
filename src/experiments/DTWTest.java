@@ -1,11 +1,8 @@
 package experiments;
 
-import representation.xy.XYFilter;
 import utilities.ClassifierTools;
-import utilities.InstanceTools;
 import utilities.fileIO.DataSets;
 import weka.classifiers.lazy.kNN;
-import weka.core.EuclideanDistance;
 import weka.core.Instances;
 import weka.core.elastic_distance_measures.DTW_DistanceBasic;
 import experiments.XY.DistanceType;
@@ -14,7 +11,6 @@ public class DTWTest {
 	public static void main(String[] args) throws Exception {
 
 		String[] datasets = DataSets.ucrNames;
-		//String[] datasets = {"StarLightCurves"};
 		String dataDir = "G:/Êý¾Ý/TSC Problems/";
 		Instances train, test, dTrain, dTest;
 		kNN knn;
